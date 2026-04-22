@@ -117,6 +117,183 @@
     }
 
     /* ==============================================
+       API-Key-Modal
+       ============================================== */
+    .api-key-modal-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 200;
+      background: rgba(20, 20, 40, 0.55);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .api-key-modal-overlay.versteckt {
+      display: none;
+    }
+
+    .api-key-modal {
+      background: var(--white);
+      border: 2px solid var(--border);
+      border-radius: 14px;
+      padding: 44px 48px 40px;
+      max-width: 480px;
+      width: 100%;
+      box-shadow: 0 20px 60px rgba(20,20,40,0.18);
+    }
+
+    .api-key-modal .modal-logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 28px;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--ink);
+      letter-spacing: 0.01em;
+    }
+
+    .api-key-modal .modal-logo svg {
+      width: 22px;
+      height: 22px;
+      flex-shrink: 0;
+    }
+
+    .api-key-modal h2 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--ink);
+      line-height: 1.45;
+      margin-bottom: 24px;
+    }
+
+    .api-key-modal input[type="password"] {
+      width: 100%;
+      font-family: monospace;
+      font-size: 1rem;
+      padding: 13px 16px;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      background: var(--bg);
+      color: var(--ink);
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      margin-bottom: 16px;
+    }
+
+    .api-key-modal input[type="password"]:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(244,91,7,0.12);
+    }
+
+    .api-key-modal .modal-weiter-btn {
+      display: block;
+      width: 100%;
+      padding: 14px;
+      font-family: inherit;
+      font-size: 1rem;
+      font-weight: 700;
+      background: var(--ink);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.15s;
+      margin-bottom: 16px;
+    }
+
+    .api-key-modal .modal-weiter-btn:hover   { background: #2d2d2d; }
+    .api-key-modal .modal-weiter-btn:disabled {
+      background: #aaa;
+      cursor: not-allowed;
+    }
+
+    .api-key-modal .modal-hilfe {
+      font-size: 0.78rem;
+      color: var(--ink-muted);
+      text-align: center;
+    }
+
+    .api-key-modal .modal-hilfe a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+    .api-key-modal .modal-hilfe a:hover { text-decoration: underline; }
+
+    .api-key-modal .modal-fehler {
+      font-size: 0.82rem;
+      color: var(--red);
+      margin-bottom: 10px;
+      display: none;
+    }
+    .api-key-modal .modal-fehler.sichtbar { display: block; }
+
+    @media (max-width: 480px) {
+      .api-key-modal { padding: 32px 24px 28px; }
+    }
+
+    /* ==============================================
+       API-Key-Leiste
+       ============================================== */
+    .api-key-bar {
+      background: var(--white);
+      border-bottom: 1px solid var(--border);
+      padding: 8px 48px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .api-key-bar .api-key-label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--ink-muted);
+      white-space: nowrap;
+      margin-bottom: 0;
+    }
+
+    .api-key-bar input {
+      flex: 1;
+      max-width: 400px;
+      font-family: monospace;
+      font-size: 0.82rem;
+      padding: 5px 10px;
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      background: var(--bg);
+      color: var(--ink);
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+    .api-key-bar input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(244,91,7,0.10);
+    }
+
+    .api-key-status {
+      font-size: 0.75rem;
+      color: var(--green);
+      white-space: nowrap;
+      min-width: 80px;
+    }
+
+    @media (max-width: 480px) {
+      .api-key-bar {
+        padding: 8px 12px;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .api-key-bar input { max-width: 100%; width: 100%; }
+    }
+
+    /* ==============================================
        Datenschutz-Hinweiszeile
        ============================================== */
     .datenschutz-hinweis {
@@ -631,6 +808,35 @@
 </head>
 <body>
 
+<!-- API-Key-Modal – erscheint beim ersten Öffnen wenn kein Key in sessionStorage -->
+<div class="api-key-modal-overlay" id="api-key-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-titel">
+  <div class="api-key-modal">
+    <div class="modal-logo">
+      <svg viewBox="0 0 8 8" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <circle cx="4" cy="4" r="4" fill="#F45B07"/>
+        <line x1="4" y1="4" x2="4" y2="0" stroke="#fff" stroke-width="1"/>
+        <line x1="4" y1="4" x2="7.46" y2="5.5" stroke="#fff" stroke-width="1"/>
+      </svg>
+      VizLab
+    </div>
+    <h2 id="modal-titel">Bitte deinen Anthropic API Key eingeben um VizLab zu nutzen</h2>
+    <input
+      type="password"
+      id="modal-api-key-input"
+      placeholder="sk-ant-api03-..."
+      autocomplete="off"
+      spellcheck="false"
+      aria-label="Anthropic API Key"
+    >
+    <p class="modal-fehler" id="modal-fehler">Bitte einen Key eingeben.</p>
+    <button class="modal-weiter-btn" id="modal-weiter-btn">Weiter →</button>
+    <p class="modal-hilfe">
+      Deinen Key findest du auf
+      <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">console.anthropic.com</a>
+    </p>
+  </div>
+</div>
+
 <div class="disclaimer-banner">⚠️ Keine vertraulichen Novartis-Daten eingeben</div>
 
 <header>
@@ -638,6 +844,19 @@
   <span class="subtitle">Werkzeug zur qualitativen Bewertung von Datenvisualisierungen</span>
 </header>
 <div class="datenschutz-hinweis">Tool läuft auf deinem Gerät – deine Daten werden nicht gespeichert</div>
+
+<div class="api-key-bar">
+  <span class="api-key-label">API Key</span>
+  <input
+    type="password"
+    id="api-key-input"
+    placeholder="sk-ant-api03-..."
+    autocomplete="off"
+    spellcheck="false"
+    aria-label="Anthropic API Key"
+  >
+  <span class="api-key-status" id="api-key-status"></span>
+</div>
 
 <!-- Tab-Navigation -->
 <nav class="tabs" role="tablist">
@@ -810,7 +1029,7 @@
   // =============================================================
   // ⚠️ API KEY HIER EINTRAGEN – NIEMALS INS GIT REPOSITORY COMMITTEN
   // Anthropic Console: https://console.anthropic.com/settings/keys
-  const ANTHROPIC_API_KEY = "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";
+  const ANTHROPIC_API_KEY = "";
 
   // Modell gemäß CLAUDE.md
   const MODELL = "claude-sonnet-4-20250514";
@@ -1027,11 +1246,17 @@ Wenn du unsicher bist weil zu wenig Information vorliegt, frage nach.`;
   // Gibt den Antwort-Text zurück oder wirft einen Fehler
   // =============================================================
   async function rufAnthropicAp(nachrichten) {
+    // Key aus sessionStorage lesen (Eingabefeld), Fallback auf Konstante
+    const apiKey = sessionStorage.getItem('anthropic-api-key') || ANTHROPIC_API_KEY;
+    if (!apiKey) {
+      throw new Error('Kein API Key eingetragen. Bitte den Key oben in der Leiste eingeben.');
+    }
+
     const antwort = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
         'Content-Type':                          'application/json',
-        'x-api-key':                             ANTHROPIC_API_KEY,
+        'x-api-key':                             apiKey,
         'anthropic-version':                     '2023-06-01',
         // Pflichtangabe für direkte Browser-Aufrufe (API-Key im Frontend)
         'anthropic-dangerous-direct-browser-access': 'true'
@@ -1517,8 +1742,71 @@ Wenn du unsicher bist weil zu wenig Information vorliegt, frage nach.`;
       buttonEl.disabled = false;
     }
   }
+
+  // =============================================================
+  // API-Key-Modal + Leiste: sessionStorage lesen/schreiben
+  // =============================================================
+  (function () {
+    const overlay      = document.getElementById('api-key-modal-overlay');
+    const modalInput   = document.getElementById('modal-api-key-input');
+    const modalFehler  = document.getElementById('modal-fehler');
+    const weiterBtn    = document.getElementById('modal-weiter-btn');
+    const barInput     = document.getElementById('api-key-input');
+    const barStatus    = document.getElementById('api-key-status');
+
+    function keySpeichern(key) {
+      sessionStorage.setItem('anthropic-api-key', key);
+      barInput.value         = key;
+      barStatus.textContent  = '✓ Key gespeichert';
+    }
+
+    function modalSchliessen() {
+      overlay.classList.add('versteckt');
+      document.body.style.overflow = '';
+    }
+
+    // Modal zeigen falls noch kein Key in dieser Session
+    const gespeichert = sessionStorage.getItem('anthropic-api-key');
+    if (gespeichert) {
+      overlay.classList.add('versteckt');
+      barInput.value        = gespeichert;
+      barStatus.textContent = '✓ Key gespeichert';
+    } else {
+      document.body.style.overflow = 'hidden'; // Scrollen sperren während Modal offen
+      modalInput.focus();
+    }
+
+    // "Weiter"-Button
+    weiterBtn.addEventListener('click', function () {
+      const key = modalInput.value.trim();
+      if (!key) {
+        modalFehler.classList.add('sichtbar');
+        modalInput.focus();
+        return;
+      }
+      modalFehler.classList.remove('sichtbar');
+      keySpeichern(key);
+      modalSchliessen();
+    });
+
+    // Enter-Taste im Modal-Input
+    modalInput.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') weiterBtn.click();
+    });
+
+    // Leiste: Änderungen direkt in sessionStorage schreiben
+    barInput.addEventListener('input', function () {
+      const key = this.value.trim();
+      if (key) {
+        sessionStorage.setItem('anthropic-api-key', key);
+        barStatus.textContent = '✓ Key gespeichert';
+      } else {
+        sessionStorage.removeItem('anthropic-api-key');
+        barStatus.textContent = '';
+      }
+    });
+  })();
 </script>
 
 </body>
 </html>
-
