@@ -1,1 +1,1524 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VizLab</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* ==============================================
+       Designvariablen
+       ============================================== */
+    :root {
+      --bg:          #F7F9FF;   /* Seitenhintergrund              */
+      --white:       #ffffff;
+      --ink:         #161616;   /* Titel / H1 / H2                */
+      --ink-soft:    #414163;   /* Fließtext                      */
+      --ink-muted:   #8080a0;   /* Hinweistexte / Labels          */
+      --border:      #EBEBF7;   /* Rahmen / Cards                 */
+      --border-soft: #EBEBF7;
+      --accent:      #F45B07;   /* Buttons, aktive Tabs, Akzente  */
+      --accent-bg:   #FEF0E8;   /* Heller Akzent-Hintergrund      */
+      --orange:      #F45B07;   /* Warnungs-Marker (= accent)     */
+      --orange-bg:   #FEF0E8;
+      --green:       #166534;
+      --green-bg:    #f0fdf4;
+      --red:         #dc2626;
+      --red-bg:      #fef2f2;
+    }
+
+    /* ==============================================
+       Reset & Basis
+       ============================================== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ==============================================
+       Typografie – Beamer-optimiert (min. 20px body)
+       ============================================== */
+    body {
+      font-family: 'Open Sans', sans-serif;
+      font-size: 20px;
+      line-height: 1.75;
+      background: var(--bg);
+      color: var(--ink-soft);   /* Fließtext: #414163 */
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ==============================================
+       Header
+       ============================================== */
+    header {
+      background: var(--white);
+      border-bottom: 2px solid var(--border);
+      padding: 18px 48px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    header h1 {
+      font-size: 1.65rem;
+      font-weight: normal;
+      letter-spacing: 0.02em;
+      color: var(--ink);        /* Titel: #161616 */
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo-pie {
+      display: block;
+      width: 28px;
+      height: 28px;
+      flex-shrink: 0;
+    }
+
+    header .subtitle {
+      font-size: 0.82rem;
+      color: var(--ink-muted);
+      letter-spacing: 0.01em;
+    }
+
+    /* ==============================================
+       Disclaimer-Banner – fix oben rechts
+       ============================================== */
+    .disclaimer-banner {
+      position: fixed;
+      top: 0;
+      right: 0;
+      z-index: 100;
+      background: rgba(247, 249, 255, 0.94);
+      border-left: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      border-bottom-left-radius: 6px;
+      padding: 5px 14px;
+      font-size: 0.72rem;
+      color: var(--ink-soft);
+      letter-spacing: 0.01em;
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      pointer-events: none;
+      user-select: none;
+    }
+
+    @media (max-width: 480px) {
+      .disclaimer-banner {
+        left: 0;
+        right: 0;
+        border-left: none;
+        border-radius: 0;
+        border-bottom-left-radius: 0;
+        text-align: center;
+        padding: 6px 12px;
+      }
+    }
+
+    /* ==============================================
+       Datenschutz-Hinweiszeile
+       ============================================== */
+    .datenschutz-hinweis {
+      background: var(--bg);
+      border-bottom: 1px solid var(--border-soft);
+      padding: 6px 48px;
+      font-size: 0.78rem;
+      color: var(--ink-muted);
+      letter-spacing: 0.01em;
+    }
+
+    /* ==============================================
+       Tab-Navigation
+       ============================================== */
+    .tabs {
+      display: flex;
+      background: var(--white);
+      border-bottom: 2px solid var(--border);
+      padding: 0 48px;
+      gap: 4px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      box-shadow: 0 1px 0 var(--border);
+    }
+
+    .tab-button {
+      font-family: inherit;
+      font-size: 1rem;
+      padding: 18px 36px;
+      background: none;
+      border: none;
+      border-bottom: 4px solid transparent;
+      margin-bottom: -2px;
+      cursor: pointer;
+      color: var(--ink-muted);
+      letter-spacing: 0.01em;
+      transition: color 0.15s, border-color 0.15s;
+      white-space: nowrap;
+    }
+
+    .tab-button:hover { color: var(--ink); }
+
+    .tab-button.active {
+      color: var(--ink);
+      font-weight: bold;
+      border-bottom-color: var(--accent);   /* aktiver Tab: #F45B07 */
+    }
+
+    /* ==============================================
+       Layout
+       ============================================== */
+    main {
+      max-width: 940px;
+      margin: 0 auto;
+      padding: 48px 48px 100px;
+    }
+
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* ==============================================
+       Eingabe-Card
+       ============================================== */
+    .eingabe-card {
+      background: var(--white);
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      padding: 40px 44px;
+    }
+
+    .section-title {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: var(--ink);        /* Überschrift: #161616 */
+      margin-bottom: 6px;
+      line-height: 1.3;
+    }
+
+    .section-desc {
+      font-size: 0.88rem;
+      color: var(--ink-muted);
+      margin-bottom: 36px;
+      line-height: 1.55;
+    }
+
+    .form-group { margin-bottom: 30px; }
+
+    label {
+      display: block;
+      font-size: 0.78rem;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--ink-soft);
+      margin-bottom: 7px;
+    }
+
+    label .hint {
+      display: block;
+      font-weight: normal;
+      font-size: 0.82rem;
+      text-transform: none;
+      letter-spacing: 0;
+      color: var(--ink-muted);
+      margin-top: 3px;
+    }
+
+    textarea {
+      width: 100%;
+      font-family: inherit;
+      font-size: 1rem;
+      line-height: 1.65;
+      padding: 14px 18px;
+      border: 2px solid var(--border);
+      border-radius: 7px;
+      background: var(--white);
+      color: var(--ink);
+      resize: vertical;
+      min-height: 106px;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+    textarea::placeholder {
+      color: var(--ink-soft);   /* #414163 statt Standard-Hellgrau */
+      opacity: 1;
+    }
+
+    textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(244,91,7,0.12);
+    }
+
+    /* Upload-Bereich */
+    .upload-area {
+      border: 2px dashed var(--border);
+      border-radius: 7px;
+      padding: 30px 20px;
+      text-align: center;
+      cursor: pointer;
+      background: var(--bg);
+      transition: border-color 0.15s, background 0.15s;
+    }
+
+    .upload-area:hover         { border-color: var(--accent); background: var(--accent-bg); }
+    .upload-area.hat-datei     { border-color: var(--accent); border-style: solid; background: var(--accent-bg); }
+    .upload-area input[type="file"] { display: none; }
+
+    .upload-icon {
+      font-size: 2.2rem;
+      display: block;
+      margin-bottom: 8px;
+      color: var(--ink-muted);
+    }
+
+    .upload-area p { font-size: 0.88rem; color: var(--ink-muted); margin-top: 4px; }
+
+    /* Bildvorschau */
+    #bild-vorschau {
+      display: none;
+      margin-top: 16px;
+      max-width: 100%;
+      max-height: 260px;
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      object-fit: contain;
+      background: var(--bg);
+    }
+
+    #bild-info              { display: none; align-items: center; gap: 12px; margin-top: 9px; font-size: 0.8rem; color: var(--ink-muted); }
+    #bild-info.sichtbar     { display: flex; }
+
+    #bild-entfernen {
+      font-family: inherit;
+      font-size: 0.8rem;
+      background: none;
+      border: none;
+      color: var(--red);
+      cursor: pointer;
+      text-decoration: underline;
+      padding: 0;
+    }
+
+    /* Analyse-Button – prominent, mobilfreundlich */
+    .btn-analysieren {
+      display: block;
+      width: 100%;
+      padding: 20px 40px;
+      font-family: inherit;
+      font-size: 1.1rem;
+      font-weight: bold;
+      letter-spacing: 0.03em;
+      background: var(--ink);   /* #161616 */
+      color: #FFFFFF;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 10px;
+      transition: background 0.15s, transform 0.1s;
+    }
+
+    .btn-analysieren:hover   { background: #2d2d2d; }
+    .btn-analysieren:active  { transform: scale(0.99); }
+    .btn-analysieren:disabled { background: #888; cursor: not-allowed; transform: none; }
+
+    /* ==============================================
+       Trennlinie Eingabe → Ergebnis
+       ============================================== */
+    .ergebnis-trenner {
+      border: none;
+      border-top: 2px solid var(--border-soft);
+      margin: 44px 0 0;
+    }
+
+    /* ==============================================
+       Ergebnis-Bereich
+       ============================================== */
+    .ergebnis-label {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--ink-muted);
+      font-weight: bold;
+      padding-top: 28px;
+      margin-bottom: 10px;
+    }
+
+    .ergebnis-bereich {
+      background: var(--white);
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      padding: 38px 44px;
+      min-height: 160px;
+      line-height: 1.85;
+    }
+
+    .ergebnis-bereich .platzhalter {
+      color: var(--ink-muted);
+      font-style: italic;
+      font-size: 1rem;
+    }
+
+    /* Kopieren-Button unterhalb Ergebnis */
+    .ergebnis-aktionen             { display: none; margin-top: 14px; gap: 12px; align-items: center; }
+    .ergebnis-aktionen.sichtbar    { display: flex; }
+
+    .btn-kopieren {
+      font-family: inherit;
+      font-size: 0.88rem;
+      padding: 10px 22px;
+      background: none;
+      color: var(--ink-soft);
+      border: 2px solid var(--border);
+      border-radius: 7px;
+      cursor: pointer;
+      transition: border-color 0.15s, color 0.15s, background 0.15s;
+    }
+
+    .btn-kopieren:hover   { border-color: var(--accent); color: var(--accent); background: var(--bg); }
+    .btn-kopieren.kopiert { border-color: var(--green); color: var(--green); }
+
+    /* ==============================================
+       Ergebnis-Inhalt – Markdown-Rendering
+       ============================================== */
+    .ergebnis-inhalt p          { margin-bottom: 16px; }
+    .ergebnis-inhalt ul         { margin: 8px 0 18px 28px; }
+    .ergebnis-inhalt ol         { margin: 8px 0 18px 28px; }
+    .ergebnis-inhalt li         { margin-bottom: 10px; line-height: 1.7; }
+    .ergebnis-inhalt strong     { font-weight: bold; }
+
+    .ergebnis-inhalt h4 {
+      font-size: 0.8rem;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 0.09em;
+      color: var(--ink-soft);
+      margin: 30px 0 12px;
+      padding-bottom: 7px;
+      border-bottom: 1px solid var(--border-soft);
+    }
+
+    /* Warnungs-Listeneintrag – orange linker Balken */
+    .ergebnis-inhalt li.warnung-punkt {
+      list-style: none;
+      margin-left: -4px;
+      padding-left: 14px;
+      border-left: 3px solid var(--orange);
+      color: #7c2d12;
+      background: var(--orange-bg);
+      border-radius: 0 4px 4px 0;
+      padding-top: 4px;
+      padding-bottom: 4px;
+    }
+
+    /* Positiv-Listeneintrag – grüner linker Balken */
+    .ergebnis-inhalt li.positiv-punkt {
+      list-style: none;
+      margin-left: -4px;
+      padding-left: 14px;
+      border-left: 3px solid var(--green);
+      color: #14532d;
+      background: var(--green-bg);
+      border-radius: 0 4px 4px 0;
+      padding-top: 4px;
+      padding-bottom: 4px;
+    }
+
+    /* ==============================================
+       Ladeindikator
+       ============================================== */
+    .lade-anzeige {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      color: var(--ink-muted);
+      font-style: italic;
+      font-size: 1rem;
+      padding: 24px 0;
+    }
+
+    .lade-punkte span {
+      display: inline-block;
+      width: 10px; height: 10px;
+      background: var(--accent);
+      border-radius: 50%;
+      margin: 0 3px;
+      animation: hüpfen 1.2s infinite ease-in-out;
+    }
+    .lade-punkte span:nth-child(2) { animation-delay: 0.2s; }
+    .lade-punkte span:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes hüpfen {
+      0%, 80%, 100% { transform: scale(0.55); opacity: 0.3; }
+      40%           { transform: scale(1.0);  opacity: 1;   }
+    }
+
+    /* ==============================================
+       Fehler-Meldung
+       ============================================== */
+    .fehler-box {
+      background: var(--red-bg);
+      border: 2px solid var(--red);
+      border-radius: 7px;
+      padding: 18px 22px;
+      color: #991b1b;
+      font-size: 0.95rem;
+      line-height: 1.6;
+    }
+
+    /* ==============================================
+       SVG-Visualisierungs-Layout (Tab 1)
+       ============================================== */
+    .ergebnis-mit-svg {
+      display: flex;
+      gap: 32px;
+      align-items: flex-start;
+      flex-wrap: wrap;
+    }
+
+    .ergebnis-text  { flex: 1; min-width: 260px; }
+
+    .ergebnis-svg-box {
+      flex-shrink: 0;
+      width: 264px;
+    }
+
+    .ergebnis-svg-box svg {
+      width: 100%;
+      height: auto;
+      display: block;
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      background: var(--bg);
+    }
+
+    .ergebnis-svg-label {
+      font-size: 0.76rem;
+      color: var(--ink-muted);
+      text-align: center;
+      margin-top: 7px;
+      font-style: italic;
+    }
+
+    .ergebnis-rawgraphs-box {
+      flex-shrink: 0;
+      width: 220px;
+      padding: 22px;
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      background: var(--bg);
+    }
+
+    .ergebnis-rawgraphs-box .rawgraphs-label {
+      font-size: 0.78rem;
+      color: var(--ink-muted);
+      font-style: italic;
+      margin-bottom: 10px;
+      line-height: 1.45;
+    }
+
+    a.rawgraphs-link {
+      color: #1d4ed8;
+      font-size: 0.88rem;
+      text-decoration: none;
+      line-height: 1.45;
+    }
+    a.rawgraphs-link:hover { text-decoration: underline; }
+
+    /* ==============================================
+       Responsive – Tablet (≤ 768px)
+       ============================================== */
+    @media (max-width: 768px) {
+      main { padding: 32px 24px 80px; }
+      .eingabe-card { padding: 32px 28px; }
+      .ergebnis-bereich { padding: 28px 28px; }
+    }
+
+    /* ==============================================
+       Responsive – Mobile (≤ 480px, iPhone & Co.)
+       ============================================== */
+    @media (max-width: 480px) {
+
+      body { font-size: 17px; }
+
+      header {
+        padding: 12px 16px;
+        flex-direction: column;
+        gap: 2px;
+        align-items: flex-start;
+      }
+      header h1      { font-size: 1.25rem; }
+      header .subtitle { font-size: 0.78rem; }
+
+      .tabs {
+        padding: 0;
+        position: static;
+        box-shadow: none;
+      }
+      .tab-button {
+        flex: 1;
+        padding: 14px 8px;
+        font-size: 0.9rem;
+        text-align: center;
+        white-space: normal;
+        line-height: 1.3;
+      }
+
+      main { padding: 16px 12px 100px; }
+
+      .eingabe-card {
+        padding: 20px 16px 28px;
+        border-radius: 8px;
+      }
+
+      .section-title { font-size: 1.25rem; }
+      .section-desc  { font-size: 0.85rem; margin-bottom: 24px; }
+
+      label {
+        text-transform: none;
+        font-size: 0.88rem;
+        letter-spacing: 0;
+        font-weight: bold;
+      }
+      label .hint { font-size: 0.8rem; }
+
+      textarea {
+        font-size: 0.95rem;
+        min-height: 88px;
+        padding: 12px 14px;
+      }
+
+      .upload-area { padding: 22px 16px; }
+      .upload-icon { font-size: 1.8rem; }
+
+      .btn-analysieren {
+        font-size: 1rem;
+        padding: 19px 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 14px rgba(244,91,7,0.28);
+        margin-top: 20px;
+      }
+
+      .ergebnis-trenner { margin: 32px 0 0; }
+      .ergebnis-label   { padding-top: 20px; }
+
+      .ergebnis-bereich {
+        padding: 20px 16px;
+        border-radius: 8px;
+        line-height: 1.7;
+      }
+
+      .ergebnis-inhalt p  { font-size: 0.95rem; margin-bottom: 12px; }
+      .ergebnis-inhalt li { font-size: 0.95rem; margin-bottom: 8px; }
+      .ergebnis-inhalt h4 { font-size: 0.78rem; margin: 20px 0 8px; }
+
+      .ergebnis-aktionen { flex-direction: column; }
+      .btn-kopieren {
+        width: 100%;
+        padding: 14px;
+        text-align: center;
+      }
+
+      .ergebnis-mit-svg     { flex-direction: column; gap: 20px; }
+      .ergebnis-text        { min-width: 0; }
+      .ergebnis-svg-box     { width: 100%; }
+      .ergebnis-rawgraphs-box { width: 100%; }
+
+      #bild-vorschau { max-height: 200px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="disclaimer-banner">⚠️ Keine vertraulichen Novartis-Daten eingeben</div>
+
+<header>
+  <h1><svg class="logo-pie" viewBox="0 0 8 8" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><circle cx="4" cy="4" r="4" fill="#F45B07"/><line x1="4" y1="4" x2="4" y2="0" stroke="#fff" stroke-width="1"/><line x1="4" y1="4" x2="7.46" y2="5.5" stroke="#fff" stroke-width="1"/></svg>VizLab</h1>
+  <span class="subtitle">Werkzeug zur qualitativen Bewertung von Datenvisualisierungen</span>
+</header>
+<div class="datenschutz-hinweis">Tool läuft auf deinem Gerät – deine Daten werden nicht gespeichert</div>
+
+<!-- Tab-Navigation -->
+<nav class="tabs" role="tablist">
+  <button
+    class="tab-button active"
+    role="tab"
+    aria-selected="true"
+    aria-controls="tab-selector"
+    id="btn-selector"
+    onclick="wechsleTab('selector')"
+  >
+    Find my Viz
+  </button>
+  <button
+    class="tab-button"
+    role="tab"
+    aria-selected="false"
+    aria-controls="tab-review"
+    id="btn-review"
+    onclick="wechsleTab('review')"
+  >
+    Check my Viz
+  </button>
+</nav>
+
+<main>
+
+  <!-- ============================
+       TAB 1: Chart-Selector
+       "Welches Diagramm passt?"
+       ============================ -->
+  <section class="tab-panel active" id="tab-selector" role="tabpanel" aria-labelledby="btn-selector">
+
+    <!-- Eingabe-Card -->
+    <div class="eingabe-card">
+      <h2 class="section-title">Welches Diagramm passt?</h2>
+      <p class="section-desc">Beschreibe deine Daten und dein Ziel – das Tool empfiehlt den passenden Diagrammtyp.</p>
+
+      <!-- Eingabefeld 1: Datentyp -->
+      <div class="form-group">
+        <label for="datentyp">
+          Was für Zahlen hast du?
+          <span class="hint">z.B. Umsatz pro Monat, Marktanteile in Prozent, Umfrageergebnisse von 500 Personen</span>
+        </label>
+        <textarea id="datentyp" placeholder="z.B. Ansprechrate in % über 12 Monate, Nebenwirkungen nach Patientengruppe, Marktanteile nach Indikation, Studienergebnisse aus Phase-III-Trial"></textarea>
+      </div>
+
+      <!-- Eingabefeld 2: Aussageabsicht -->
+      <div class="form-group">
+        <label for="aussage">
+          Was willst du zeigen oder beweisen?
+          <span class="hint">z.B. Wir wachsen seit 3 Jahren, Produkt A verkauft sich besser als B</span>
+        </label>
+        <textarea id="aussage" placeholder="z.B. Medikament A wirkt schneller als B, Studienergebnisse übertreffen den Standard of Care, Nebenwirkungsrate ist klinisch nicht relevant"></textarea>
+      </div>
+
+      <!-- Eingabefeld 3: Publikum -->
+      <div class="form-group">
+        <label for="publikum">
+          Wer schaut sich das an?
+          <span class="hint">z.B. Management, Patienten, Investoren</span>
+        </label>
+        <textarea id="publikum" placeholder="z.B. Onkologen, Hausärzte, Patienten ohne medizinisches Vorwissen, Sales Reps, Market Access Team, Investoren"></textarea>
+      </div>
+
+      <!-- Analyse-Button -->
+      <button class="btn-analysieren" onclick="analysiereSelector()">
+        Diagramm empfehlen →
+      </button>
+    </div>
+
+    <hr class="ergebnis-trenner">
+
+    <!-- Ergebnis -->
+    <p class="ergebnis-label">Ergebnis</p>
+    <div class="ergebnis-bereich" id="ergebnis-selector">
+      <p class="platzhalter">Hier erscheint die Diagramm-Empfehlung nach der Analyse …</p>
+    </div>
+    <div class="ergebnis-aktionen" id="aktionen-selector">
+      <button class="btn-kopieren" onclick="kopiereErgebnis('selector')">
+        Ergebnis kopieren
+      </button>
+    </div>
+
+  </section>
+
+
+  <!-- ============================
+       TAB 2: Chart-Review
+       "Ist diese Visualisierung gut?"
+       ============================ -->
+  <section class="tab-panel" id="tab-review" role="tabpanel" aria-labelledby="btn-review">
+
+    <!-- Eingabe-Card -->
+    <div class="eingabe-card">
+      <h2 class="section-title">Ist diese Visualisierung gut?</h2>
+      <p class="section-desc">Beschreibe oder lade eine Visualisierung hoch – das Tool gibt strukturiertes Feedback nach bewährten Qualitätskriterien.</p>
+
+      <!-- Eingabefeld 1: Case-Beschreibung -->
+      <div class="form-group">
+        <label for="case-beschreibung">
+          Kontext und Zweck
+          <span class="hint">Was soll diese Visualisierung zeigen? Wo wird sie verwendet?</span>
+        </label>
+        <textarea id="case-beschreibung" placeholder="z.B. Diese Grafik stammt aus einem Geschäftsbericht und soll den Marktanteil unserer Produkte im Vergleich zu Wettbewerbern zeigen …"></textarea>
+      </div>
+
+      <!-- Datei-Upload: Bild der Visualisierung -->
+      <div class="form-group">
+        <label>
+          Visualisierung hochladen
+          <span class="hint">Optional: Screenshot oder Export als JPG oder PNG (max. 5 MB)</span>
+        </label>
+        <div class="upload-area" id="upload-area" onclick="document.getElementById('bild-upload').click()">
+          <span class="upload-icon">&#8679;</span>
+          <p>Bild hier ablegen oder klicken zum Auswählen</p>
+          <p>JPG, PNG – max. 5 MB</p>
+          <input
+            type="file"
+            id="bild-upload"
+            accept="image/jpeg, image/png"
+            onchange="zeigeVorschau(event)"
+          >
+        </div>
+        <!-- Bildvorschau nach dem Upload -->
+        <img id="bild-vorschau" alt="Vorschau der hochgeladenen Visualisierung">
+        <!-- Dateiname und Entfernen-Button -->
+        <div id="bild-info">
+          <span id="bild-name"></span>
+          <button id="bild-entfernen" onclick="entferneBild()" type="button">Bild entfernen</button>
+        </div>
+      </div>
+
+      <!-- Eingabefeld 2: Zusätzliche Beobachtungen -->
+      <div class="form-group">
+        <label for="beobachtungen">
+          Eigene Beobachtungen
+          <span class="hint">Was fällt dir selbst auf? Was findest du unklar oder fragwürdig?</span>
+        </label>
+        <textarea id="beobachtungen" placeholder="z.B. Die Y-Achse beginnt nicht bei 0. Ich bin unsicher ob das ein Problem ist …"></textarea>
+      </div>
+
+      <!-- Analyse-Button -->
+      <button class="btn-analysieren" onclick="analysiereReview()">
+        Visualisierung bewerten →
+      </button>
+    </div>
+
+    <hr class="ergebnis-trenner">
+
+    <!-- Ergebnis -->
+    <p class="ergebnis-label">Ergebnis</p>
+    <div class="ergebnis-bereich" id="ergebnis-review">
+      <p class="platzhalter">Hier erscheint das strukturierte Feedback nach der Analyse …</p>
+    </div>
+    <div class="ergebnis-aktionen" id="aktionen-review">
+      <button class="btn-kopieren" onclick="kopiereErgebnis('review')">
+        Ergebnis kopieren
+      </button>
+    </div>
+
+  </section>
+
+</main>
+
+<script>
+  // =============================================================
+  // API-Konfiguration
+  // WICHTIG: Diesen Key vor dem Git-Commit entfernen oder ersetzen
+  // =============================================================
+  // ⚠️ API KEY HIER EINTRAGEN – NIEMALS INS GIT REPOSITORY COMMITTEN
+  // Anthropic Console: https://console.anthropic.com/settings/keys
+  const ANTHROPIC_API_KEY = "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";
+
+  // Modell gemäß CLAUDE.md
+  const MODELL = "claude-sonnet-4-20250514";
+
+  // =============================================================
+  // System-Prompt (exakt aus CLAUDE.md)
+  // =============================================================
+  const SYSTEM_PROMPT = `Du bist ein Experte für Datenvisualisierung und hilfst Menschen die keine Statistiker sind, Diagramme und Charts kritisch zu beurteilen.
+
+Deine Antworten basieren auf:
+- Alberto Cairos fünf Qualitätsdimensionen (Truthful, Functional, Beautiful, Insightful, Enlightening)
+- Darrell Huffs Manipulationsmustern aus "How to Lie with Statistics"
+- Wahrnehmungsforschung von Cleveland & McGill (1984)
+
+Schreibe immer auf Deutsch. Vermeide Fachjargon.
+Strukturiere Feedback mit maximal 3 konkreten Punkten.
+Sei direkt aber konstruktiv – die Nutzer sollen Agenturen briefen können, nicht beschämen.
+Wenn du unsicher bist weil zu wenig Information vorliegt, frage nach.`;
+
+  // =============================================================
+  // Tab-Wechsel
+  // =============================================================
+  function wechsleTab(tabName) {
+    // Alle Panels ausblenden
+    document.querySelectorAll('.tab-panel').forEach(panel => {
+      panel.classList.remove('active');
+    });
+
+    // Alle Tab-Buttons deaktivieren
+    document.querySelectorAll('.tab-button').forEach(btn => {
+      btn.classList.remove('active');
+      btn.setAttribute('aria-selected', 'false');
+    });
+
+    // Gewähltes Panel und Button aktivieren
+    document.getElementById('tab-' + tabName).classList.add('active');
+    document.getElementById('btn-' + tabName).classList.add('active');
+    document.getElementById('btn-' + tabName).setAttribute('aria-selected', 'true');
+  }
+
+  // =============================================================
+  // Bildvorschau nach Upload anzeigen (mit Dateiname + Größe)
+  // =============================================================
+  function zeigeVorschau(event) {
+    const datei = event.target.files[0];
+    if (!datei) return;
+
+    // Größenprüfung: max. 5 MB
+    if (datei.size > 5 * 1024 * 1024) {
+      alert('Das Bild ist zu groß (max. 5 MB). Bitte ein kleineres Bild wählen.');
+      event.target.value = '';
+      return;
+    }
+
+    // Bildvorschau einblenden
+    const vorschau = document.getElementById('bild-vorschau');
+    vorschau.src = URL.createObjectURL(datei);
+    vorschau.style.display = 'block';
+
+    // Dateiname + Größe anzeigen
+    const groesseKb = (datei.size / 1024).toFixed(0);
+    document.getElementById('bild-name').textContent =
+      `${datei.name} (${groesseKb} KB)`;
+    document.getElementById('bild-info').classList.add('sichtbar');
+
+    // Upload-Area als "ausgewählt" markieren
+    event.target.closest('.upload-area').classList.add('hat-datei');
+  }
+
+  // =============================================================
+  // Bild entfernen (Upload zurücksetzen)
+  // =============================================================
+  function entferneBild() {
+    const input    = document.getElementById('bild-upload');
+    const vorschau = document.getElementById('bild-vorschau');
+    const info     = document.getElementById('bild-info');
+
+    // FileInput leeren (neues Element nötig wegen Browser-Sicherheit)
+    input.value = '';
+    vorschau.style.display = 'none';
+    vorschau.src = '';
+    info.classList.remove('sichtbar');
+    document.querySelector('.upload-area')?.classList.remove('hat-datei');
+  }
+
+  // =============================================================
+  // Hilfsfunktion: Datei als base64-String lesen (Promise-basiert)
+  // Gibt nur den reinen base64-Teil zurück (ohne data:-Präfix)
+  // =============================================================
+  function lesBildAlsBase64(datei) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload  = e => resolve(e.target.result.split(',')[1]);
+      reader.onerror = () => reject(new Error('Bild konnte nicht gelesen werden.'));
+      reader.readAsDataURL(datei);
+    });
+  }
+
+  // =============================================================
+  // Hilfsfunktion: einfaches Markdown → HTML
+  // Unterstützt: **fett**, ## Überschriften, - Listen, Absätze
+  // Listenpunkte mit Warnungs-/Positiv-Schlüsselwörtern erhalten
+  // CSS-Klassen für farbliche Hervorhebung (orange / grün)
+  // =============================================================
+  function markdownZuHtml(text) {
+    const zeilen = text.split('\n');
+    let html = '';
+    let inListe = false;
+
+    // Schlüsselwörter für Warnung (orange) und Positiv (grün)
+    const warnungsMuster  = /manipul|abgeschnitten|fehlt|fehlend|falsch|verzerr|irreführ|problem|vorsicht|nicht\s+bei\s+null|3d|cherry.pick/i;
+    const positivMuster   = /\bkorrekt|\brichtig|\bgelungen|\bstark|\bklar|\bübersichtlich|\bgut\s+lesbar|\bempfehlenswert/i;
+
+    for (let i = 0; i < zeilen.length; i++) {
+      let zeile = zeilen[i];
+
+      // **fett** → <strong>
+      zeile = zeile.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+
+      // ## Überschrift → H4 im UI
+      if (/^#{1,3}\s/.test(zeile)) {
+        if (inListe) { html += '</ul>'; inListe = false; }
+        const inhalt = zeile.replace(/^#{1,3}\s+/, '');
+        html += `<h4>${inhalt}</h4>`;
+        continue;
+      }
+
+      // - Listenpunkt: auf Warnungs-/Positiv-Muster prüfen → CSS-Klasse
+      if (/^[-*]\s/.test(zeile)) {
+        if (!inListe) { html += '<ul>'; inListe = true; }
+        const inhalt = zeile.replace(/^[-*]\s+/, '');
+        let klasse = '';
+        if (warnungsMuster.test(inhalt))     klasse = ' class="warnung-punkt"';
+        else if (positivMuster.test(inhalt)) klasse = ' class="positiv-punkt"';
+        html += `<li${klasse}>${inhalt}</li>`;
+        continue;
+      }
+
+      // Leere Zeile: Liste schließen
+      if (zeile.trim() === '') {
+        if (inListe) { html += '</ul>'; inListe = false; }
+        continue;
+      }
+
+      // Normaler Text → Absatz
+      if (inListe) { html += '</ul>'; inListe = false; }
+      html += `<p>${zeile}</p>`;
+    }
+
+    if (inListe) html += '</ul>';
+    return html;
+  }
+
+  // =============================================================
+  // Ergebnis in die Zwischenablage kopieren
+  // =============================================================
+  function kopiereErgebnis(welches) {
+    const el  = document.getElementById('ergebnis-' + welches);
+    const btn = document.querySelector(`#aktionen-${welches} .btn-kopieren`);
+    const text = el.innerText;
+
+    navigator.clipboard.writeText(text).then(() => {
+      btn.textContent = 'Kopiert ✓';
+      btn.classList.add('kopiert');
+      setTimeout(() => {
+        btn.textContent = 'Ergebnis kopieren';
+        btn.classList.remove('kopiert');
+      }, 2200);
+    }).catch(() => {
+      // Fallback für ältere Browser
+      const range = document.createRange();
+      range.selectNode(el);
+      window.getSelection().removeAllRanges();
+      window.getSelection().addRange(range);
+      document.execCommand('copy');
+      window.getSelection().removeAllRanges();
+    });
+  }
+
+  // =============================================================
+  // Hilfsfunktion: Ladeindikator anzeigen
+  // =============================================================
+  function zeigeLadeindikator(ergebnisEl, buttonEl) {
+    ergebnisEl.innerHTML = `
+      <div class="lade-anzeige">
+        <div class="lade-punkte">
+          <span></span><span></span><span></span>
+        </div>
+        Wird analysiert …
+      </div>`;
+    buttonEl.disabled = true;
+    // Kopieren-Button während Laden verbergen
+    const aktionenId = ergebnisEl.id.replace('ergebnis-', 'aktionen-');
+    const aktionenEl = document.getElementById(aktionenId);
+    if (aktionenEl) aktionenEl.classList.remove('sichtbar');
+  }
+
+  // =============================================================
+  // Hilfsfunktion: Fehlermeldung anzeigen
+  // =============================================================
+  function zeigeFehler(ergebnisEl, meldung) {
+    ergebnisEl.innerHTML = `
+      <div class="fehler-box">
+        <strong>Fehler:</strong> ${meldung}
+      </div>`;
+    // Kopieren-Button bei Fehler nicht zeigen
+    const aktionenId = ergebnisEl.id.replace('ergebnis-', 'aktionen-');
+    const aktionenEl = document.getElementById(aktionenId);
+    if (aktionenEl) aktionenEl.classList.remove('sichtbar');
+  }
+
+  // =============================================================
+  // Hilfsfunktion: API-Call an Anthropic
+  // Gibt den Antwort-Text zurück oder wirft einen Fehler
+  // =============================================================
+  async function rufAnthropicAp(nachrichten) {
+    const antwort = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type':                          'application/json',
+        'x-api-key':                             ANTHROPIC_API_KEY,
+        'anthropic-version':                     '2023-06-01',
+        // Pflichtangabe für direkte Browser-Aufrufe (API-Key im Frontend)
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model:      MODELL,
+        max_tokens: 1024,
+        system:     SYSTEM_PROMPT,
+        messages:   nachrichten
+      })
+    });
+
+    // HTTP-Fehler abfangen (z.B. 401 Ungültiger Key, 429 Rate Limit)
+    if (!antwort.ok) {
+      let details = '';
+      try {
+        const fehlerDaten = await antwort.json();
+        details = fehlerDaten.error?.message || '';
+      } catch (_) {}
+      throw new Error(`API-Fehler ${antwort.status}${details ? ': ' + details : ''}`);
+    }
+
+    const daten = await antwort.json();
+    // Antworttext aus dem ersten Content-Block extrahieren
+    return daten.content?.[0]?.text ?? '';
+  }
+
+  // =============================================================
+  // SVG-Bibliothek: Inline-Beispieldiagramme (300×200 viewBox)
+  // Farben: #334155 dunkel · #64748b mittel · #94a3b8 hell
+  //         #0ea5e9 Akzent · #e5e7eb Gitter
+  // =============================================================
+  const DIAGRAMM_SVGS = {
+
+    // 1. Einfaches Balkendiagramm (vertikal)
+    'balken': `<svg viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg">
+      <line x1="30" y1="15" x2="30" y2="172" stroke="#e5e7eb" stroke-width="1"/>
+      <line x1="30" y1="172" x2="285" y2="172" stroke="#e5e7eb" stroke-width="1"/>
+      <line x1="30" y1="122" x2="285" y2="122" stroke="#e5e7eb" stroke-width="1" stroke-dasharray="3,3"/>
+      <line x1="30" y1="72"  x2="285" y2="72"  stroke="#e5e7eb" stroke-width="1" stroke-dasharray="3,3"/>
+      <rect x="45"  y="117" width="36" height="55" fill="#94a3b8" rx="2"/>
+      <rect x="93"  y="82"  width="36" height="90" fill="#94a3b8" rx="2"/>
+      <rect x="141" y="47"  width="36" height="125" fill="#0ea5e9" rx="2"/>
+      <rect x="189" y="97"  width="36" height="75" fill="#94a3b8" rx="2"/>
+      <rect x="237" y="124" width="36" height="48" fill="#94a3b8" rx="2"/>
+    </svg>`,
+
+    // 2. Gruppiertes Balkendiagramm
+    'balken-gruppiert': `<svg viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg">
+      <line x1="20" y1="172" x2="280" y2="172" stroke="#e5e7eb" stroke-width="1"/>
+      <line x1="20" y1="122" x2="280" y2="122" stroke="#e5e7eb" stroke-width="1" stroke-dasharray="3,3"/>
+      <line x1="20" y1="72"  x2="280" y2="72"  stroke="#e5e7eb" stroke-width="1" stroke-dasharray="3,3"/>
+      <rect x="30"  y="92"  width="26" height="80" fill="#334155" rx="2"/>
+      <rect x="58"  y="122" width="26" height="50" fill="#94a3b8" rx="2"/>
+      <rect x="117" y="57"  width="26" height="115" fill="#334155" rx="2"/>
+      <rect x="145" y="97"  width="26" height="75" fill="#94a3b8" rx="2"/>
+      <rect x="204" y="77"  width="26" height="95" fill="#334155" rx="2"/>
+      <rect x="232" y="110" width="26" height="62" fill="#94a3b8" rx="2"/>
+      <rect x="95"  y="185" width="10" height="10" fill="#334155"/>
+      <rect x="175" y="185" width="10" height="10" fill="#94a3b8"/>
+    </svg>`,
+
+    // 3. Gestapeltes Balkendiagramm
+    'balken-gestapelt': `<svg viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg">
+      <line x1="20" y1="172" x2="280" y2="172" stroke="#e5e7eb" stroke-width="1"/>
+      <rect x="35"  y="127" width="42" height="45" fill="#334155"/>
+      <rect x="35"  y="82"  width="42" height="45" fill="#64748b"/>
+      <rect x="35"  y="47"  width="42" height="35" fill="#94a3b8" rx="2" style="border-radius:2px 2px 0 0"/>
+      <rect x="98"  y="132" width="42" height="40" fill="#334155"/>
+      <rect x="98"  y="92"  width="42" height="40" fill="#64748b"/>
+      <rect x="98"  y="62"  width="42" height="30" fill="#94a3b8"/>
+      <rect x="161" y="122" width="42" height="50" fill="#334155"/>
+      <rect x="161" y="77"  width="42" height="45" fill="#64748b"/>
+      <rect x="161" y="42"  width="42" height="35" fill="#94a3b8"/>
+      <rect x="224" y="130" width="42" height="42" fill="#334155"/>
+      <rect x="224" y="90"  width="42" height="40" fill="#64748b"/>
+      <rect x="224" y="60"  width="42" height="30" fill="#94a3b8"/>
+    </svg>`,
+
+    // 4. Liniendiagramm
+    'linie': `<svg viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg">
+      <line x1="30" y1="15" x2="30" y2="172" stroke="#e5e7eb" stroke-width="1"/>
+      <line x1="30" y1="172" x2="282" y2="172" stroke="#e5e7eb" stroke-width="1"/>
+      <line x1="30" y1="122" x2="282" y2="122" stroke="#e5e7eb" stroke-width="1" stroke-dasharray="3,3"/>
+      <line x1="30" y1="72"  x2="282" y2="72"  stroke="#e5e7eb" stroke-width="1" stroke-dasharray="3,3"/>
+      <polyline points="48,148 96,120 144,90 192,63 240,42 278,28"
+                fill="none" stroke="#0ea5e9" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+      <circle cx="48"  cy="148" r="4.5" fill="#fff" stroke="#0ea5e9" stroke-width="2"/>
+      <circle cx="96"  cy="120" r="4.5" fill="#fff" stroke="#0ea5e9" stroke-width="2"/>
+      <circle cx="144" cy="90"  r="4.5" fill="#fff" stroke="#0ea5e9" stroke-width="2"/>
+      <circle cx="192" cy="63"  r="4.5" fill="#fff" stroke="#0ea5e9" stroke-width="2"/>
+      <circle cx="240" cy="42"  r="4.5" fill="#fff" stroke="#0ea5e9" stroke-width="2"/>
+      <circle cx="278" cy="28"  r="4.5" fill="#0ea5e9" stroke="#0ea5e9" stroke-width="2"/>
+    </svg>`,
+
+    // 5. Flächendiagramm
+    'flaeche': `<svg viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg">
+      <line x1="30" y1="15" x2="30" y2="172" stroke="#e5e7eb" stroke-width="1"/>
+      <line x1="30" y1="172" x2="282" y2="172" stroke="#e5e7eb" stroke-width="1"/>
+      <line x1="30" y1="122" x2="282" y2="122" stroke="#e5e7eb" stroke-width="1" stroke-dasharray="3,3"/>
+      <line x1="30" y1="72"  x2="282" y2="72"  stroke="#e5e7eb" stroke-width="1" stroke-dasharray="3,3"/>
+      <polygon points="48,148 96,120 144,90 192,63 240,42 278,28 278,172 48,172"
+               fill="#0ea5e9" fill-opacity="0.15"/>
+      <polyline points="48,148 96,120 144,90 192,63 240,42 278,28"
+                fill="none" stroke="#0ea5e9" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+    </svg>`,
+
+    // 6. Tortendiagramm (4 Segmente: 35%·30%·20%·15%)
+    // Mittelpunkt (150,100), r=75
+    // Winkel: Start -90°, Segmente bei 36°·144°·216°·270°
+    'torte': `<svg viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg">
+      <path d="M 150 100 L 150 25   A 75 75 0 0 1 211 144 Z" fill="#334155"/>
+      <path d="M 150 100 L 211 144  A 75 75 0 0 1 89  144 Z" fill="#64748b"/>
+      <path d="M 150 100 L 89  144  A 75 75 0 0 1 89  56  Z" fill="#94a3b8"/>
+      <path d="M 150 100 L 89  56   A 75 75 0 0 1 150 25  Z" fill="#cbd5e1"/>
+      <circle cx="150" cy="100" r="30" fill="#fff"/>
+    </svg>`,
+
+    // 7. Streudiagramm mit Trendlinie
+    'streuung': `<svg viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg">
+      <line x1="30" y1="15" x2="30" y2="172" stroke="#e5e7eb" stroke-width="1"/>
+      <line x1="30" y1="172" x2="282" y2="172" stroke="#e5e7eb" stroke-width="1"/>
+      <line x1="46" y1="156" x2="272" y2="38" stroke="#334155" stroke-width="1.5"
+            stroke-dasharray="5,4" opacity="0.4"/>
+      <circle cx="55"  cy="150" r="5" fill="#64748b" fill-opacity="0.75"/>
+      <circle cx="72"  cy="132" r="5" fill="#64748b" fill-opacity="0.75"/>
+      <circle cx="88"  cy="142" r="5" fill="#64748b" fill-opacity="0.75"/>
+      <circle cx="106" cy="118" r="5" fill="#64748b" fill-opacity="0.75"/>
+      <circle cx="120" cy="128" r="5" fill="#64748b" fill-opacity="0.75"/>
+      <circle cx="138" cy="103" r="5" fill="#64748b" fill-opacity="0.75"/>
+      <circle cx="150" cy="112" r="5" fill="#64748b" fill-opacity="0.75"/>
+      <circle cx="158" cy="93"  r="5.5" fill="#0ea5e9" fill-opacity="0.9"/>
+      <circle cx="172" cy="98"  r="5" fill="#64748b" fill-opacity="0.75"/>
+      <circle cx="184" cy="77"  r="5" fill="#64748b" fill-opacity="0.75"/>
+      <circle cx="198" cy="88"  r="5" fill="#64748b" fill-opacity="0.75"/>
+      <circle cx="214" cy="67"  r="5" fill="#64748b" fill-opacity="0.75"/>
+      <circle cx="228" cy="72"  r="5" fill="#64748b" fill-opacity="0.75"/>
+      <circle cx="244" cy="55"  r="5" fill="#64748b" fill-opacity="0.75"/>
+      <circle cx="262" cy="44"  r="5" fill="#64748b" fill-opacity="0.75"/>
+    </svg>`,
+
+    // 8. Box Plot (3 nebeneinander)
+    'box': `<svg viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg">
+      <line x1="20" y1="175" x2="280" y2="175" stroke="#e5e7eb" stroke-width="1"/>
+      <line x1="80"  y1="42"  x2="80"  y2="72"  stroke="#334155" stroke-width="1.5"/>
+      <line x1="62"  y1="42"  x2="98"  y2="42"  stroke="#334155" stroke-width="1.5"/>
+      <rect  x="58"  y="72"   width="44" height="60" fill="none" stroke="#334155" stroke-width="2"/>
+      <line x1="58"  y1="104" x2="102" y2="104" stroke="#0ea5e9" stroke-width="2.5"/>
+      <line x1="80"  y1="132" x2="80"  y2="150" stroke="#334155" stroke-width="1.5"/>
+      <line x1="62"  y1="150" x2="98"  y2="150" stroke="#334155" stroke-width="1.5"/>
+      <line x1="150" y1="30"  x2="150" y2="65"  stroke="#334155" stroke-width="1.5"/>
+      <line x1="132" y1="30"  x2="168" y2="30"  stroke="#334155" stroke-width="1.5"/>
+      <rect  x="128" y="65"   width="44" height="65" fill="none" stroke="#334155" stroke-width="2"/>
+      <line x1="128" y1="92"  x2="172" y2="92"  stroke="#0ea5e9" stroke-width="2.5"/>
+      <line x1="150" y1="130" x2="150" y2="155" stroke="#334155" stroke-width="1.5"/>
+      <line x1="132" y1="155" x2="168" y2="155" stroke="#334155" stroke-width="1.5"/>
+      <circle cx="150" cy="163" r="3" fill="none" stroke="#334155" stroke-width="1.5"/>
+      <line x1="220" y1="55"  x2="220" y2="80"  stroke="#334155" stroke-width="1.5"/>
+      <line x1="202" y1="55"  x2="238" y2="55"  stroke="#334155" stroke-width="1.5"/>
+      <rect  x="198" y="80"   width="44" height="56" fill="none" stroke="#334155" stroke-width="2"/>
+      <line x1="198" y1="110" x2="242" y2="110" stroke="#0ea5e9" stroke-width="2.5"/>
+      <line x1="220" y1="136" x2="220" y2="157" stroke="#334155" stroke-width="1.5"/>
+      <line x1="202" y1="157" x2="238" y2="157" stroke="#334155" stroke-width="1.5"/>
+    </svg>`,
+
+    // 9. Heatmap 5×4 (Zellgröße 44×36, Abstand 2)
+    'heatmap': `<svg viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg">
+      <rect x="25"  y="20" width="44" height="36" fill="#93c5fd"/>
+      <rect x="71"  y="20" width="44" height="36" fill="#60a5fa"/>
+      <rect x="117" y="20" width="44" height="36" fill="#1e40af"/>
+      <rect x="163" y="20" width="44" height="36" fill="#60a5fa"/>
+      <rect x="209" y="20" width="44" height="36" fill="#93c5fd"/>
+      <rect x="25"  y="58" width="44" height="36" fill="#60a5fa"/>
+      <rect x="71"  y="58" width="44" height="36" fill="#1e40af"/>
+      <rect x="117" y="58" width="44" height="36" fill="#93c5fd"/>
+      <rect x="163" y="58" width="44" height="36" fill="#2563eb"/>
+      <rect x="209" y="58" width="44" height="36" fill="#60a5fa"/>
+      <rect x="25"  y="96" width="44" height="36" fill="#dbeafe"/>
+      <rect x="71"  y="96" width="44" height="36" fill="#60a5fa"/>
+      <rect x="117" y="96" width="44" height="36" fill="#2563eb"/>
+      <rect x="163" y="96" width="44" height="36" fill="#93c5fd"/>
+      <rect x="209" y="96" width="44" height="36" fill="#1e40af"/>
+      <rect x="25"  y="134" width="44" height="36" fill="#2563eb"/>
+      <rect x="71"  y="134" width="44" height="36" fill="#dbeafe"/>
+      <rect x="117" y="134" width="44" height="36" fill="#1e40af"/>
+      <rect x="163" y="134" width="44" height="36" fill="#60a5fa"/>
+      <rect x="209" y="134" width="44" height="36" fill="#93c5fd"/>
+    </svg>`,
+
+    // 10. Treemap (verschachtelte Rechtecke)
+    'treemap': `<svg viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg">
+      <rect x="10"  y="10"  width="145" height="100" fill="#334155" rx="2"/>
+      <rect x="10"  y="112" width="75"  height="78"  fill="#64748b" rx="2"/>
+      <rect x="87"  y="112" width="68"  height="78"  fill="#94a3b8" rx="2"/>
+      <rect x="157" y="10"  width="133" height="70"  fill="#475569" rx="2"/>
+      <rect x="157" y="82"  width="65"  height="108" fill="#7f92a8" rx="2"/>
+      <rect x="224" y="82"  width="66"  height="58"  fill="#b0c0d0" rx="2"/>
+      <rect x="224" y="142" width="66"  height="48"  fill="#cbd5e1" rx="2"/>
+    </svg>`,
+
+    // 11. Slope Chart (4 Linien, links x=75, rechts x=225)
+    'slope': `<svg viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg">
+      <line x1="75"  y1="20" x2="75"  y2="178" stroke="#e5e7eb" stroke-width="1.5"/>
+      <line x1="225" y1="20" x2="225" y2="178" stroke="#e5e7eb" stroke-width="1.5"/>
+      <line x1="75"  y1="52"  x2="225" y2="36"  stroke="#0ea5e9" stroke-width="2"/>
+      <circle cx="75"  cy="52"  r="5" fill="#0ea5e9"/>
+      <circle cx="225" cy="36"  r="5" fill="#0ea5e9"/>
+      <line x1="75"  y1="88"  x2="225" y2="118" stroke="#94a3b8" stroke-width="2"/>
+      <circle cx="75"  cy="88"  r="5" fill="#94a3b8"/>
+      <circle cx="225" cy="118" r="5" fill="#94a3b8"/>
+      <line x1="75"  y1="128" x2="225" y2="72"  stroke="#334155" stroke-width="2.5"/>
+      <circle cx="75"  cy="128" r="5" fill="#334155"/>
+      <circle cx="225" cy="72"  r="5" fill="#334155"/>
+      <line x1="75"  y1="158" x2="225" y2="154" stroke="#94a3b8" stroke-width="2"/>
+      <circle cx="75"  cy="158" r="5" fill="#94a3b8"/>
+      <circle cx="225" cy="154" r="5" fill="#94a3b8"/>
+    </svg>`,
+
+    // 12. Beeswarm Plot (Punkte entlang Achse, symmetrisch gestreut)
+    'beeswarm': `<svg viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg">
+      <line x1="30" y1="100" x2="270" y2="100" stroke="#e5e7eb" stroke-width="1.5"/>
+      <circle cx="52"  cy="100" r="5" fill="#64748b" fill-opacity="0.75"/>
+      <circle cx="78"  cy="100" r="5" fill="#64748b" fill-opacity="0.75"/>
+      <circle cx="92"  cy="89"  r="5" fill="#64748b" fill-opacity="0.75"/>
+      <circle cx="92"  cy="111" r="5" fill="#64748b" fill-opacity="0.75"/>
+      <circle cx="112" cy="100" r="5" fill="#64748b" fill-opacity="0.75"/>
+      <circle cx="112" cy="83"  r="5" fill="#64748b" fill-opacity="0.75"/>
+      <circle cx="112" cy="117" r="5" fill="#64748b" fill-opacity="0.75"/>
+      <circle cx="133" cy="100" r="5" fill="#64748b" fill-opacity="0.75"/>
+      <circle cx="133" cy="82"  r="5" fill="#64748b" fill-opacity="0.75"/>
+      <circle cx="133" cy="118" r="5" fill="#64748b" fill-opacity="0.75"/>
+      <circle cx="150" cy="73"  r="5" fill="#0ea5e9" fill-opacity="0.9"/>
+      <circle cx="150" cy="91"  r="5" fill="#64748b" fill-opacity="0.75"/>
+      <circle cx="150" cy="109" r="5" fill="#64748b" fill-opacity="0.75"/>
+      <circle cx="150" cy="127" r="5" fill="#64748b" fill-opacity="0.75"/>
+      <circle cx="168" cy="100" r="5" fill="#64748b" fill-opacity="0.75"/>
+      <circle cx="168" cy="83"  r="5" fill="#64748b" fill-opacity="0.75"/>
+      <circle cx="168" cy="117" r="5" fill="#64748b" fill-opacity="0.75"/>
+      <circle cx="188" cy="100" r="5" fill="#64748b" fill-opacity="0.75"/>
+      <circle cx="188" cy="87"  r="5" fill="#64748b" fill-opacity="0.75"/>
+      <circle cx="204" cy="100" r="5" fill="#64748b" fill-opacity="0.75"/>
+      <circle cx="228" cy="100" r="5" fill="#64748b" fill-opacity="0.75"/>
+    </svg>`
+  };
+
+  // Anzeigebezeichnungen für den Label unter dem SVG
+  const DIAGRAMM_NAMEN = {
+    'balken':           'Balkendiagramm',
+    'balken-gruppiert': 'Gruppiertes Balkendiagramm',
+    'balken-gestapelt': 'Gestapeltes Balkendiagramm',
+    'linie':            'Liniendiagramm',
+    'flaeche':          'Flächendiagramm',
+    'torte':            'Tortendiagramm',
+    'streuung':         'Streudiagramm',
+    'box':              'Box Plot',
+    'heatmap':          'Heatmap',
+    'treemap':          'Treemap',
+    'slope':            'Slope Chart',
+    'beeswarm':         'Beeswarm Plot'
+  };
+
+  // =============================================================
+  // RAWGraphs-Links für komplexe Diagrammtypen
+  // =============================================================
+  const RAWGRAPHS_LINKS = {
+    'sankey':   { name: 'Sankey Diagram',    url: 'https://www.rawgraphs.io/learning/how-to-make-a-sankey-diagram' },
+    'alluvial': { name: 'Alluvial Diagram',  url: 'https://www.rawgraphs.io/learning/how-to-make-an-alluvial-diagram' },
+    'chord':    { name: 'Chord Diagram',     url: 'https://www.rawgraphs.io/learning/how-to-make-a-chord-diagram' },
+    'stream':   { name: 'Streamgraph',       url: 'https://www.rawgraphs.io/learning/how-to-make-a-streamgraph' },
+    'packing':  { name: 'Circle Packing',    url: 'https://www.rawgraphs.io/learning/how-to-make-a-circle-packing' }
+  };
+
+  // =============================================================
+  // Diagrammtyp aus Claude-Antworttext erkennen
+  // Reihenfolge: spezifischere Muster zuerst
+  // =============================================================
+  function erkenneDiagrammtyp(text) {
+    const t = text.toLowerCase();
+
+    // RAWGraphs-Typen (zuerst, da sonst "chord" in "chord diagram" übersehen wird)
+    if (t.includes('sankey'))                                      return { typ: 'rawgraphs', key: 'sankey' };
+    if (t.includes('alluvial'))                                    return { typ: 'rawgraphs', key: 'alluvial' };
+    if (t.includes('chord diagram') || t.includes('chord-diagram') || t.includes('sehnendiagramm'))
+                                                                   return { typ: 'rawgraphs', key: 'chord' };
+    if (t.includes('streamgraph') || t.includes('stream graph') || t.includes('stromdiagramm'))
+                                                                   return { typ: 'rawgraphs', key: 'stream' };
+    if (t.includes('circle packing') || t.includes('kreispack'))   return { typ: 'rawgraphs', key: 'packing' };
+
+    // Spezifische Balken-Varianten vor dem einfachen Balken
+    if ((t.includes('gestapelt') || t.includes('stacked bar') || t.includes('stacked-bar'))
+        && (t.includes('balken') || t.includes('säulen') || t.includes('bar')))
+                                                                   return { typ: 'svg', key: 'balken-gestapelt' };
+    if ((t.includes('gruppi') || t.includes('grouped bar') || t.includes('grouped-bar'))
+        && (t.includes('balken') || t.includes('säulen') || t.includes('bar')))
+                                                                   return { typ: 'svg', key: 'balken-gruppiert' };
+
+    // Einzelne Diagrammtypen
+    if (t.includes('beeswarm') || t.includes('bienen'))            return { typ: 'svg', key: 'beeswarm' };
+    if (t.includes('slope chart') || t.includes('slope-chart') || t.includes('slopechart')
+        || (t.includes('slope') && t.includes('diagramm')))        return { typ: 'svg', key: 'slope' };
+    if (t.includes('treemap') || t.includes('tree map'))           return { typ: 'svg', key: 'treemap' };
+    if (t.includes('heatmap') || t.includes('heat map') || t.includes('wärmekarte') || t.includes('wärmebild'))
+                                                                   return { typ: 'svg', key: 'heatmap' };
+    if (t.includes('box plot') || t.includes('boxplot') || t.includes('box-plot') || t.includes('whisker'))
+                                                                   return { typ: 'svg', key: 'box' };
+    if (t.includes('streu') || t.includes('scatter') || t.includes('punktwolke'))
+                                                                   return { typ: 'svg', key: 'streuung' };
+    if (t.includes('flächen') || t.includes('area chart') || t.includes('areachart') || t.includes('flächendiagramm'))
+                                                                   return { typ: 'svg', key: 'flaeche' };
+    if (t.includes('torten') || t.includes('kuchen') || t.includes('pie chart') || t.includes('kreisdiagramm'))
+                                                                   return { typ: 'svg', key: 'torte' };
+    if (t.includes('linien') || t.includes('linienchart') || t.includes('line chart') || t.includes('kurven'))
+                                                                   return { typ: 'svg', key: 'linie' };
+    if (t.includes('balken') || t.includes('säulen') || t.includes('bar chart') || t.includes('barchart'))
+                                                                   return { typ: 'svg', key: 'balken' };
+
+    return null; // Kein Typ erkannt – nichts anzeigen
+  }
+
+  // =============================================================
+  // Flow 1: Chart-Selector – API-Call + SVG-Anzeige
+  // =============================================================
+  async function analysiereSelector() {
+    const datentyp = document.getElementById('datentyp').value.trim();
+    const aussage  = document.getElementById('aussage').value.trim();
+    const publikum = document.getElementById('publikum').value.trim();
+
+    // Validierung: mindestens ein Feld muss ausgefüllt sein
+    if (!datentyp && !aussage && !publikum) {
+      alert('Bitte fülle mindestens ein Feld aus.');
+      return;
+    }
+
+    const ergebnisEl = document.getElementById('ergebnis-selector');
+    const buttonEl   = document.querySelector('#tab-selector .btn-analysieren');
+
+    zeigeLadeindikator(ergebnisEl, buttonEl);
+
+    const userText = [
+      datentyp  ? `Meine Daten: ${datentyp}`        : null,
+      aussage   ? `Was ich zeigen will: ${aussage}`  : null,
+      publikum  ? `Mein Publikum: ${publikum}`       : null,
+      'Welches Diagramm empfiehlst du mir und warum? Weise auch auf häufige Fehler hin, die ich vermeiden sollte.'
+    ].filter(Boolean).join('\n\n');
+
+    try {
+      const antwortText = await rufAnthropicAp([
+        { role: 'user', content: userText }
+      ]);
+
+      // Diagrammtyp aus der Antwort erkennen
+      const erkannt = erkenneDiagrammtyp(antwortText);
+
+      // SVG oder RAWGraphs-Link aufbauen
+      let visualisierung = '';
+      if (erkannt) {
+        if (erkannt.typ === 'svg') {
+          const svg  = DIAGRAMM_SVGS[erkannt.key];
+          const name = DIAGRAMM_NAMEN[erkannt.key];
+          visualisierung = `
+            <div class="ergebnis-svg-box">
+              ${svg}
+              <p class="ergebnis-svg-label">${name} – Beispiel</p>
+            </div>`;
+        } else if (erkannt.typ === 'rawgraphs') {
+          const info = RAWGRAPHS_LINKS[erkannt.key];
+          visualisierung = `
+            <div class="ergebnis-rawgraphs-box">
+              <p class="rawgraphs-label">Komplexer Diagrammtyp –<br>kein einfaches SVG möglich:</p>
+              <a href="${info.url}" target="_blank" rel="noopener" class="rawgraphs-link">
+                Beispiel auf RAWGraphs ansehen →
+              </a>
+            </div>`;
+        }
+      }
+
+      // Ergebnis rendern: Text links, Visualisierung rechts
+      ergebnisEl.innerHTML = `
+        <div class="ergebnis-mit-svg">
+          <div class="ergebnis-text ergebnis-inhalt">${markdownZuHtml(antwortText)}</div>
+          ${visualisierung}
+        </div>`;
+
+      // Kopieren-Button einblenden und zum Ergebnis scrollen
+      document.getElementById('aktionen-selector').classList.add('sichtbar');
+      ergebnisEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    } catch (fehler) {
+      let meldung = 'Die Analyse konnte nicht abgeschlossen werden.';
+      if (fehler.message.includes('401'))          meldung = 'Ungültiger API-Key. Bitte den Key in der Konfiguration prüfen.';
+      else if (fehler.message.includes('429'))     meldung = 'Zu viele Anfragen. Bitte kurz warten und es erneut versuchen.';
+      else if (fehler.message.includes('fetch') || fehler.message.includes('Network'))
+                                                   meldung = 'Keine Verbindung zur API. Bitte Internetverbindung prüfen.';
+      else if (fehler.message)                     meldung = fehler.message;
+      zeigeFehler(ergebnisEl, meldung);
+    } finally {
+      buttonEl.disabled = false;
+    }
+  }
+
+  // =============================================================
+  // Flow 2: Chart-Review – API-Call mit optionalem Vision-Block
+  // =============================================================
+  async function analysiereReview() {
+    const beschreibung  = document.getElementById('case-beschreibung').value.trim();
+    const beobachtungen = document.getElementById('beobachtungen').value.trim();
+    const bildUpload    = document.getElementById('bild-upload');
+    const hatBild       = bildUpload.files && bildUpload.files.length > 0;
+    const datei         = hatBild ? bildUpload.files[0] : null;
+
+    // Validierung: mindestens Beschreibung oder Bild erforderlich
+    if (!beschreibung && !hatBild) {
+      alert('Bitte füge mindestens eine Beschreibung oder ein Bild hinzu.');
+      return;
+    }
+
+    const ergebnisEl = document.getElementById('ergebnis-review');
+    const buttonEl   = document.querySelector('#tab-review .btn-analysieren');
+
+    zeigeLadeindikator(ergebnisEl, buttonEl);
+
+    try {
+      // --- User-Text zusammenbauen ---
+      const textTeile = [];
+      if (beschreibung)  textTeile.push(`Kontext und Zweck: ${beschreibung}`);
+      if (beobachtungen) textTeile.push(`Eigene Beobachtungen: ${beobachtungen}`);
+      textTeile.push(
+        'Bitte bewerte diese Visualisierung nach Cairos fünf Qualitätsdimensionen ' +
+        '(Truthful, Functional, Beautiful, Insightful, Enlightening), ' +
+        'prüfe sie auf Manipulationsmuster nach Darrell Huff ' +
+        'und gib maximal 3 konkrete, konstruktive Verbesserungsvorschläge.'
+      );
+      const userText = textTeile.join('\n\n');
+
+      // --- Content-Array aufbauen (Text + optional Bild) ---
+      // Anthropic erwartet bei Vision: content als Array von Blöcken
+      const inhalt = [];
+
+      if (hatBild) {
+        // Bild als base64 lesen und als image-Block einfügen
+        const base64Daten = await lesBildAlsBase64(datei);
+        inhalt.push({
+          type: 'image',
+          source: {
+            type:       'base64',
+            media_type: datei.type,   // 'image/jpeg' oder 'image/png'
+            data:       base64Daten
+          }
+        });
+      }
+
+      // Text-Block immer zuletzt (nach dem Bild, wie Anthropic empfiehlt)
+      inhalt.push({ type: 'text', text: userText });
+
+      // --- API-Call ---
+      const antwortText = await rufAnthropicAp([
+        { role: 'user', content: inhalt }
+      ]);
+
+      // --- Ergebnis rendern ---
+      ergebnisEl.innerHTML = `<div class="ergebnis-inhalt">${markdownZuHtml(antwortText)}</div>`;
+
+      // Kopieren-Button einblenden und zum Ergebnis scrollen
+      document.getElementById('aktionen-review').classList.add('sichtbar');
+      ergebnisEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    } catch (fehler) {
+      // Benutzerfreundliche deutsche Fehlermeldungen
+      let meldung = 'Die Bewertung konnte nicht abgeschlossen werden.';
+      if (fehler.message.includes('401'))
+        meldung = 'Ungültiger API-Key. Bitte den Key in der Konfiguration prüfen.';
+      else if (fehler.message.includes('429'))
+        meldung = 'Zu viele Anfragen. Bitte kurz warten und es erneut versuchen.';
+      else if (fehler.message.includes('413') || fehler.message.includes('too large'))
+        meldung = 'Das Bild ist zu groß für die API. Bitte ein kleineres Bild (max. 5 MB, idealerweise komprimiert) verwenden.';
+      else if (fehler.message.includes('fetch') || fehler.message.includes('Network'))
+        meldung = 'Keine Verbindung zur API. Bitte Internetverbindung prüfen.';
+      else if (fehler.message)
+        meldung = fehler.message;
+
+      zeigeFehler(ergebnisEl, meldung);
+    } finally {
+      buttonEl.disabled = false;
+    }
+  }
+</script>
+
+</body>
+</html>
 
